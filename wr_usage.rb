@@ -12,7 +12,7 @@ class WrUsage
   end
 
   def perform
-    puts "Grabbing usage rates for #{year} #{team}"
+    puts "Grabbing usage rates for #{year} #{team}\n\n"
 
     games = Cfb.api.get_games(year, options)
     puts "Found #{games.length} games"
@@ -22,7 +22,7 @@ class WrUsage
 
     games.each do |game|
       week = game.week
-      puts "Week #{week}"
+      puts "Getting data for week #{week}"
 
       box_scores = Faraday.get "https://api.collegefootballdata.com/game/box/advanced?gameId=#{game.id}&exclude_garbage_time=true"
       JSON.parse(box_scores.body)['players']['usage'].select{|h| h['team'] == team}.each do |h|
@@ -41,7 +41,9 @@ class WrUsage
       weighted_usages << {:weighted_sum => sum, :player => k, :pos => v.first[:data]['position']}
     end
 
-    puts weighted_usages.sort_by{|h| h[:weighted_sum]}
+    puts "\n\nCopy the CSV below into excel or Google Sheets:\n\n"
+    puts "Weighted Sum, Player, Position\n"
+    puts weighted_usages.sort_by{|h| h[:weighted_sum]}.map{|h| "#{h[:weighted_sum]},#{h[:player]},#{h[:pos]}"}
   end
 
   private
